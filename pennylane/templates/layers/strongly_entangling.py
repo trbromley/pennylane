@@ -16,7 +16,7 @@ Contains the ``StronglyEntanglingLayers`` template.
 """
 # pylint: disable-msg=too-many-branches,too-many-arguments,protected-access
 from pennylane.templates.decorator import template
-from pennylane.ops import CNOT, Rot
+from pennylane.ops import CNOT, Rot, RZ, RY
 from pennylane.templates import broadcast
 from pennylane.templates.utils import (
     _check_shape,
