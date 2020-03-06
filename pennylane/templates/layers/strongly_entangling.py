@@ -38,7 +38,10 @@ def strongly_entangling_layer(weights, wires, r, imprimitive):
         imprimitive (pennylane.ops.Operation): two-qubit gate to use, defaults to :class:`~pennylane.ops.CNOT`
     """
 
-    broadcast(unitary=Rot, pattern="single", wires=wires, parameters=weights)
+    for i, wire in enumerate(wires):
+        RZ(weights[i, 0], wires=wire)
+        RY(weights[i, 1], wires=wire)
+        RZ(weights[i, 2], wires=wire)
 
     n_wires = len(wires)
     if n_wires > 1:
