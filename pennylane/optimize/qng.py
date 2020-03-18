@@ -101,7 +101,7 @@ class QNGOptimizer(GradientDescentOptimizer):
             to be applied at each optimization step
     """
 
-    def __init__(self, stepsize=0.01, diag_approx=False, lam=0):
+    def __init__(self, stepsize=0.01, diag_approx=False, lam=0.01):
         super().__init__(stepsize)
         self.diag_approx = diag_approx
         self.metric_tensor = None
