@@ -131,7 +131,6 @@ def device(name, *args, **kwargs):
         config (pennylane.Configuration): a PennyLane configuration object
             that contains global and/or device specific configurations.
     """
-    print(plugin_devices)
     if name in plugin_devices:
         options = {}
 
