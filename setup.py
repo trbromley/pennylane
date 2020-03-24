@@ -13,7 +13,6 @@
 # limitations under the License.
 
 from setuptools import setup, find_packages
-from Cython.Build import cythonize
 
 with open("pennylane/_version.py") as f:
     version = f.readlines()[-1].split()[-1].strip("\"'")
@@ -75,6 +74,4 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics"
 ]
 
-cython_modules = ["./pennylane/plugins/lightning_qubit_utils.pyx"]
-
-setup(classifiers=classifiers, zip_safe=False, ext_modules=cythonize(cython_modules), **(info))
+setup(classifiers=classifiers, **(info))
