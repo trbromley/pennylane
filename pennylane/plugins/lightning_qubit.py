@@ -24,7 +24,7 @@ import itertools
 import numpy as np
 
 from pennylane import QubitDevice, DeviceError, QubitStateVector, BasisState
-
+from .lightning_qubit_utils import mvp
 
 # tolerance for numerical errors
 tolerance = 1e-10
@@ -113,7 +113,7 @@ class LightningQubit(QubitDevice):
                 self.apply_basis_state(basis_state, wires)
 
             else:
-                self._state = self.mat_vec_product(operation.matrix, self._state, wires)
+                self._state = self.mat_vec_product(operation.matrix, self._state, wires, self.num_wires)
 
         # store the pre-rotated state
         self._pre_rotated_state = self._state
@@ -122,7 +122,7 @@ class LightningQubit(QubitDevice):
         for operation in rotations:
             wires = operation.wires
             par = operation.parameters
-            self._state = self.mat_vec_product(operation.matrix, self._state, wires)
+            self._state = self.mat_vec_product(operation.matrix, self._state, wires, self.num_wires)
 
     @property
     def state(self):
@@ -182,32 +182,19 @@ class LightningQubit(QubitDevice):
         self._state = np.zeros_like(self._state)
         self._state[num] = 1.0
 
-    def mat_vec_product(self, mat, vec, wires):
+    def mat_vec_product(self, mat, vec, wires, num_wires):
         r"""Apply multiplication of a matrix to subsystems of the quantum state.
 
         Args:
             mat (array): matrix to multiply
             vec (array): state vector to multiply
             wires (Sequence[int]): target subsystems
+            num_wires: total number of wires in circuit
 
         Returns:
             array: output vector after applying ``mat`` to input ``vec`` on specified subsystems
         """
-        # TODO: use multi-index vectors/matrices to represent states/gates internally
-        mat = np.reshape(mat, [2] * len(wires) * 2)
-        vec = np.reshape(vec, [2] * self.num_wires)
-        axes = (np.arange(len(wires), 2 * len(wires)), wires)
-        tdot = np.tensordot(mat, vec, axes=axes)
-
-        # tensordot causes the axes given in `wires` to end up in the first positions
-        # of the resulting tensor. This corresponds to a (partial) transpose of
-        # the correct output state
-        # We'll need to invert this permutation to put the indices in the correct place
-        unused_idxs = [idx for idx in range(self.num_wires) if idx not in wires]
-        perm = wires + unused_idxs
-        inv_perm = np.argsort(perm)  # argsort gives inverse permutation
-        state_multi_index = np.transpose(tdot, inv_perm)
-        return np.reshape(state_multi_index, 2 ** self.num_wires)
+        return mvp(mat, vec, wires, num_wires)
 
     def reset(self):
         """Reset the device"""
