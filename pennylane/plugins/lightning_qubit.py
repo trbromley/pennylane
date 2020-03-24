@@ -196,9 +196,18 @@ class LightningQubit(QubitDevice):
         # TODO: use multi-index vectors/matrices to represent states/gates internally
         mat = np.reshape(mat, [2] * len(wires) * 2)
         vec = np.reshape(vec, [2] * self.num_wires)
-        axes = (np.array(wires) + len(wires), wires)
+        axes = (np.arange(len(wires), 2 * len(wires)), wires)
         tdot = np.tensordot(mat, vec, axes=axes)
-        return np.reshape(tdot, 2 ** self.num_wires)
+
+        # tensordot causes the axes given in `wires` to end up in the first positions
+        # of the resulting tensor. This corresponds to a (partial) transpose of
+        # the correct output state
+        # We'll need to invert this permutation to put the indices in the correct place
+        unused_idxs = [idx for idx in range(self.num_wires) if idx not in wires]
+        perm = wires + unused_idxs
+        inv_perm = np.argsort(perm)  # argsort gives inverse permutation
+        state_multi_index = np.transpose(tdot, inv_perm)
+        return np.reshape(state_multi_index, 2 ** self.num_wires)
 
     def reset(self):
         """Reset the device"""
