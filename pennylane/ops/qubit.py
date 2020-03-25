@@ -23,6 +23,8 @@ from pennylane.operation import Any, Observable, Operation
 from pennylane.templates.state_preparations import BasisStatePreparation, MottonenStatePreparation
 from pennylane.utils import OperationRecorder, pauli_eigs
 
+id = np.eye(2)
+
 
 class Hadamard(Observable, Operation):
     r"""Hadamard(wires)
@@ -420,7 +422,7 @@ class RX(Operation):
     @staticmethod
     def _matrix(*params):
         theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliX._matrix()
+        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliX._matrix()
 
 
 class RY(Operation):
@@ -452,7 +454,7 @@ class RY(Operation):
     @staticmethod
     def _matrix(*params):
         theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliY._matrix()
+        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliY._matrix()
 
 
 class RZ(Operation):
@@ -484,7 +486,7 @@ class RZ(Operation):
     @staticmethod
     def _matrix(*params):
         theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliZ._matrix()
+        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliZ._matrix()
 
 
 class PhaseShift(Operation):
@@ -615,7 +617,7 @@ class CRX(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RX._matrix(*params))
+        return block_diag(id, RX._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -678,7 +680,7 @@ class CRY(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RY._matrix(*params))
+        return block_diag(id, RY._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -739,7 +741,7 @@ class CRZ(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RZ._matrix(*params))
+        return block_diag(id, RZ._matrix(*params))
 
     @staticmethod
     def decomposition(lam, wires):
