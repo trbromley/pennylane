@@ -23,7 +23,20 @@ from pennylane.operation import Any, Observable, Operation
 from pennylane.templates.state_preparations import BasisStatePreparation, MottonenStatePreparation
 from pennylane.utils import OperationRecorder, pauli_eigs
 
-id = np.eye(2)
+from numba import jit
+
+ID = np.eye(2)
+
+
+@jit(nopython=True)
+def r_matrix(theta, axis):
+    """Number rotation matrix"""
+    if axis == 1:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[0, 1], [1, 0]])
+    elif axis == 2:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[0, -1j], [1j, 0]])
+    else:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[1, 0], [0, -1]])
 
 
 class Hadamard(Observable, Operation):
@@ -46,6 +59,7 @@ class Hadamard(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 1], [1, -1]]) / np.sqrt(2)
 
@@ -86,6 +100,7 @@ class PauliX(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[0, 1], [1, 0]])
 
@@ -124,6 +139,7 @@ class PauliY(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[0, -1j], [1j, 0]])
 
@@ -164,6 +180,7 @@ class PauliZ(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0], [0, -1]])
 
@@ -247,10 +264,11 @@ class CNOT(Operation):
     num_params = 0
     num_wires = 2
     par_domain = None
-    mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 
-    def _matrix(self, *params):
-        return self.mat
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix(*params):
+        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 
 
 class CZ(Operation):
@@ -279,6 +297,7 @@ class CZ(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
@@ -307,6 +326,7 @@ class SWAP(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
@@ -341,6 +361,7 @@ class CSWAP(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array(
             [
@@ -387,10 +408,20 @@ class Toffoli(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
-        mat = np.diag([1 for i in range(8)])
-        mat[6:8, 6:8] = np.array([[0, 1], [1, 0]])
-        return mat
+        return np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+            ]
+        )
 
 
 class RX(Operation):
@@ -420,9 +451,9 @@ class RX(Operation):
     generator = [PauliX, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliX._matrix()
+        return r_matrix(params[0], 1)
 
 
 class RY(Operation):
@@ -452,9 +483,9 @@ class RY(Operation):
     generator = [PauliY, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliY._matrix()
+        return r_matrix(params[0], 2)
 
 
 class RZ(Operation):
@@ -484,9 +515,9 @@ class RZ(Operation):
     generator = [PauliZ, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * id + 1j * np.sin(-theta / 2) * PauliZ._matrix()
+        return r_matrix(params[0], 3)
 
 
 class PhaseShift(Operation):
@@ -557,9 +588,10 @@ class Rot(Operation):
     grad_method = "A"
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         a, b, c = params
-        return RZ._matrix(c) @ (RY._matrix(b) @ RZ._matrix(a))
+        return r_matrix(c, 3) @ r_matrix(b, 2) @ r_matrix(a, 3)
 
     @staticmethod
     def decomposition(phi, theta, omega, wires):
@@ -617,7 +649,7 @@ class CRX(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(id, RX._matrix(*params))
+        return block_diag(ID, RX._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -680,7 +712,7 @@ class CRY(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(id, RY._matrix(*params))
+        return block_diag(ID, RY._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -741,7 +773,7 @@ class CRZ(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(id, RZ._matrix(*params))
+        return block_diag(ID, RZ._matrix(*params))
 
     @staticmethod
     def decomposition(lam, wires):
