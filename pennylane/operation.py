@@ -628,7 +628,16 @@ class Operation(Operator):
     @property
     def matrix(self):
         if self.inverse:
-            return np.linalg.inv(self._matrix(*self.parameters))
+            m = self._matrix(*self.parameters)
+            if self.num_wires > 1:
+                m = np.reshape(m, [2 ** self.num_wires, 2 ** self.num_wires])
+
+            m = np.linalg.inv(m)
+
+            if self.num_wires > 1:
+                m = np.reshape(m, [2] * (2 * self.num_wires))
+
+            return m
 
         return self._matrix(*self.parameters)
 
