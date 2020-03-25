@@ -96,7 +96,7 @@ class DefaultQubit(QubitDevice):
         for i, operation in enumerate(operations):
             # number of wires on device
             wires = operation.wires
-            par = operation.parameters
+            par = operation.params
 
             if i > 0 and isinstance(operation, (QubitStateVector, BasisState)):
                 raise DeviceError(
