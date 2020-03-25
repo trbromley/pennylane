@@ -306,6 +306,13 @@ class Operator(abc.ABC):
         """
         return self._matrix(*self.parameters)
 
+    @property
+    def matrix_tensor(self):
+        return self._matrix_tensor(*self.parameters)
+
+    def _matrix_tensor(self, *args):
+        return args
+
     @name.setter
     def name(self, value):
         self._name = value
@@ -631,6 +638,17 @@ class Operation(Operator):
             return np.linalg.inv(self._matrix(*self.parameters))
 
         return self._matrix(*self.parameters)
+
+    @property
+    def matrix_tensor(self):
+        mat = self._matrix_tensor(*self.parameters)
+
+        if self.inverse:
+            mat.reshape([2 ** self.num_wires, 2 ** self.num_wires])
+            mat = np.linalg.inv(mat)
+            mat.reshape([2] * (self.num_wires * 2))
+
+        return mat
 
     @property
     def base_name(self):

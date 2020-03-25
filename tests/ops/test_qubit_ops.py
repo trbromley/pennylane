@@ -67,6 +67,18 @@ class TestObservables:
     """Tests for observables"""
 
     @pytest.mark.parametrize("obs, mat, eigs", OBSERVABLES)
+    def test_matrix_tensor(self, obs, mat, eigs, tol):
+        ob = obs(wires=0)
+        A = ob.matrix
+        A_t = ob.matrix_tensor
+        if ob.name == "Identity":
+            n_wires = 1
+        else:
+            n_wires = ob.num_wires
+
+        assert np.allclose(A_t.reshape([2 ** n_wires, 2 ** n_wires]), A, atol=tol, rtol=0)
+
+    @pytest.mark.parametrize("obs, mat, eigs", OBSERVABLES)
     def test_diagonalization(self, obs, mat, eigs, tol):
         """Test the method transforms standard observables into the Z-gate."""
         ob = obs(wires=0)

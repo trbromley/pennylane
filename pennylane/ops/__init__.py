@@ -58,6 +58,8 @@ class Identity(CVObservable):
     def _matrix(*params):
         return np.eye(2)
 
+    _matrix_tensor = _matrix
+
     @staticmethod
     def _heisenberg_rep(p):
         return np.array([1, 0, 0])
