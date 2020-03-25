@@ -83,7 +83,7 @@ def plot(title, kernels, labels, n_vals):
     )
 
 
-def profile(func, identifier, *, min_time=5):
+def profile(func, identifier, *, min_time=120):
     """Profile the given function.
 
     Args:
