@@ -85,7 +85,9 @@ class LightningQubit(QubitDevice):
 
         self._state = np.zeros(2 ** wires, dtype=complex)
         self._state[0] = 1
+        self._state = np.reshape(self._state, [2] * wires)
         self._pre_rotated_state = self._state
+
 
         super().__init__(wires, shots, analytic)
 
@@ -126,7 +128,7 @@ class LightningQubit(QubitDevice):
 
     @property
     def state(self):
-        return self._pre_rotated_state
+        return self._pre_rotated_state.reshape(2 ** self.num_wires)
 
     def apply_state_vector(self, input_state, wires):
         """Initialize the internal state vector in a specified state.
@@ -152,8 +154,10 @@ class LightningQubit(QubitDevice):
 
             # get indices for which the state is changed to input state vector elements
             ravelled_indices = np.ravel_multi_index(unravelled_indices.T, [2] * self.num_wires)
-            self._state = np.zeros_like(self._state)
-            self._state[ravelled_indices] = input_state
+            s_temp = self._state.reshape(2 ** self.num_wires)
+            s_temp = np.zeros_like(s_temp)
+            s_temp[ravelled_indices] = input_state
+            self._state = s_temp.reshape([2] * self.num_wires)
         else:
             raise ValueError("State vector must be of length 2**wires.")
 
@@ -179,8 +183,10 @@ class LightningQubit(QubitDevice):
         basis_states = 2 ** (self.num_wires - 1 - np.array(wires))
         num = int(np.dot(state, basis_states))
 
-        self._state = np.zeros_like(self._state)
-        self._state[num] = 1.0
+        s_temp = self._state.reshape(2 ** self.num_wires)
+        s_temp = np.zeros_like(s_temp)
+        s_temp[num] = 1.0
+        self._state = s_temp.reshape([2] * self.num_wires)
 
     def mat_vec_product(self, mat_t, vec, wires, num_wires):
         r"""Apply multiplication of a matrix to subsystems of the quantum state.
@@ -197,7 +203,6 @@ class LightningQubit(QubitDevice):
         # return mvp(mat, vec, wires, num_wires)
         # TODO: use multi-index vectors/matrices to represent states/gates internally
         # mat_t = np.reshape(mat_t, [2] * len(wires) * 2)
-        vec = np.reshape(vec, [2] * num_wires)
         axes = (np.arange(len(wires), 2 * len(wires)), wires)
         tdot = np.tensordot(mat_t, vec, axes=axes)
 
@@ -209,20 +214,23 @@ class LightningQubit(QubitDevice):
         perm = wires + unused_idxs
         inv_perm = np.argsort(perm)  # argsort gives inverse permutation
         state_multi_index = np.transpose(tdot, inv_perm)
-        return np.reshape(state_multi_index, 2 ** num_wires)
+        return state_multi_index
 
     def reset(self):
         """Reset the device"""
         # init the state vector to |00..0>
         super().reset()
-        self._state = np.zeros(2 ** self.num_wires, dtype=complex)
-        self._state[0] = 1
-        self._pre_rotated_state = self._state
+
+        s_temp = np.zeros(2 ** self.num_wires, dtype=complex)
+        s_temp[0] = 1
+        self._pre_rotated_state = s_temp.reshape([2] * self.num_wires)
+        self._state = s_temp.reshape([2] * self.num_wires)
 
     def probability(self, wires=None):
         if self._state is None:
             return None
 
         wires = wires or range(self.num_wires)
-        prob = self.marginal_prob(np.abs(self._state) ** 2, wires)
+        s_temp = self._state.reshape(2 ** self.num_wires)
+        prob = self.marginal_prob(np.abs(s_temp) ** 2, wires)
         return prob
