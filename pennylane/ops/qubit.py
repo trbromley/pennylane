@@ -247,10 +247,10 @@ class CNOT(Operation):
     num_params = 0
     num_wires = 2
     par_domain = None
+    mat = np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 
-    @staticmethod
-    def _matrix(*params):
-        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
+    def _matrix(self, *params):
+        return self.mat
 
 
 class CZ(Operation):
