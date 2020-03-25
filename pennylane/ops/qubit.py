@@ -268,9 +268,7 @@ class CNOT(Operation):
     @staticmethod
     @jit(nopython=True)
     def _matrix(*params):
-        return np.array(
-            [[[[1, 0], [0, 0]], [[0, 1], [0, 0]]], [[[0, 0], [0, 1]], [[0, 0], [1, 0]]]]
-        )
+        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
 
 
 class CZ(Operation):
@@ -301,9 +299,7 @@ class CZ(Operation):
     @staticmethod
     @jit(nopython=True)
     def _matrix(*params):
-        return np.array(
-            [[[[1, 0], [0, 0]], [[0, 1], [0, 0]]], [[[0, 0], [1, 0]], [[0, 0], [0, -1]]]]
-        )
+        return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
 
 
 class SWAP(Operation):
@@ -332,9 +328,7 @@ class SWAP(Operation):
     @staticmethod
     @jit(nopython=True)
     def _matrix(*params):
-        return np.array(
-            [[[[1, 0], [0, 0]], [[0, 0], [1, 0]]], [[[0, 1], [0, 0]], [[0, 0], [0, 1]]]]
-        )
+        return np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
 
 
 class CSWAP(Operation):
@@ -371,14 +365,14 @@ class CSWAP(Operation):
     def _matrix(*params):
         return np.array(
             [
-                [
-                    [[[[1, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 1], [0, 0]], [[0, 0], [0, 0]]]],
-                    [[[[0, 0], [1, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 1]], [[0, 0], [0, 0]]]],
-                ],
-                [
-                    [[[[0, 0], [0, 0]], [[1, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [1, 0]]]],
-                    [[[[0, 0], [0, 0]], [[0, 1], [0, 0]]], [[[0, 0], [0, 0]], [[0, 0], [0, 1]]]],
-                ],
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
             ]
         )
 
@@ -418,14 +412,14 @@ class Toffoli(Operation):
     def _matrix(*params):
         return np.array(
             [
-                [
-                    [[[[1, 0], [0, 0]], [[0, 0], [0, 0]]], [[[0, 1], [0, 0]], [[0, 0], [0, 0]]]],
-                    [[[[0, 0], [1, 0]], [[0, 0], [0, 0]]], [[[0, 0], [0, 1]], [[0, 0], [0, 0]]]],
-                ],
-                [
-                    [[[[0, 0], [0, 0]], [[1, 0], [0, 0]]], [[[0, 0], [0, 0]], [[0, 1], [0, 0]]]],
-                    [[[[0, 0], [0, 0]], [[0, 0], [0, 1]]], [[[0, 0], [0, 0]], [[0, 0], [1, 0]]]],
-                ],
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0],
             ]
         )
 
@@ -655,7 +649,7 @@ class CRX(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(ID, RX._matrix(*params)).reshape([2, 2, 2, 2])
+        return block_diag(ID, RX._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -718,7 +712,7 @@ class CRY(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(ID, RY._matrix(*params)).reshape([2, 2, 2, 2])
+        return block_diag(ID, RY._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -779,7 +773,7 @@ class CRZ(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(ID, RZ._matrix(*params)).reshape([2, 2, 2, 2])
+        return block_diag(ID, RZ._matrix(*params))
 
     @staticmethod
     def decomposition(lam, wires):
@@ -827,11 +821,7 @@ class CRot(Operation):
     @staticmethod
     def _matrix(*params):
         a, b, c = params
-        mat_a = CRZ._matrix(a).reshape([4, 4])
-        mat_b = CRY._matrix(b).reshape([4, 4])
-        mat_c = CRZ._matrix(c).reshape([4, 4])
-        mat = mat_c @ mat_b @ mat_a
-        return mat.reshape([2, 2, 2, 2])
+        return CRZ._matrix(c) @ (CRY._matrix(b) @ CRZ._matrix(a))
 
 
 class U1(Operation):
