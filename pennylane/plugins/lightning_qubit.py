@@ -113,7 +113,7 @@ class LightningQubit(QubitDevice):
                 self.apply_basis_state(basis_state, wires)
 
             else:
-                self._state = self.mat_vec_product(operation.matrix, self._state, wires)
+                self._state = self.mat_vec_product(operation.matrix_tensor, self._state, wires, self.num_wires)
 
         # store the pre-rotated state
         self._pre_rotated_state = self._state
@@ -121,7 +121,8 @@ class LightningQubit(QubitDevice):
         # apply the circuit rotations
         for operation in rotations:
             wires = operation.wires
-            self._state = self.mat_vec_product(operation.matrix, self._state, wires)
+            self._state = self.mat_vec_product(operation.matrix_tensor, self._state, wires,
+                                               self.num_wires)
 
     @property
     def state(self):
@@ -181,11 +182,11 @@ class LightningQubit(QubitDevice):
         self._state = np.zeros_like(self._state)
         self._state[num] = 1.0
 
-    def mat_vec_product(self, mat, vec, wires, num_wires):
+    def mat_vec_product(self, mat_t, vec, wires, num_wires):
         r"""Apply multiplication of a matrix to subsystems of the quantum state.
 
         Args:
-            mat (array): matrix to multiply
+            mat_t (array): matrix to multiply in tensor form
             vec (array): state vector to multiply
             wires (Sequence[int]): target subsystems
             num_wires: total number of wires in circuit
@@ -195,10 +196,10 @@ class LightningQubit(QubitDevice):
         """
         # return mvp(mat, vec, wires, num_wires)
         # TODO: use multi-index vectors/matrices to represent states/gates internally
-        mat = np.reshape(mat, [2] * len(wires) * 2)
+        # mat_t = np.reshape(mat_t, [2] * len(wires) * 2)
         vec = np.reshape(vec, [2] * num_wires)
         axes = (np.arange(len(wires), 2 * len(wires)), wires)
-        tdot = np.tensordot(mat, vec, axes=axes)
+        tdot = np.tensordot(mat_t, vec, axes=axes)
 
         # tensordot causes the axes given in `wires` to end up in the first positions
         # of the resulting tensor. This corresponds to a (partial) transpose of

@@ -1224,7 +1224,8 @@ class QubitUnitary(Operation):
         return U
 
     def _matrix_tensor(self, *params):
-        self._matrix(params).reshape([2] * self.num_wires)
+        tensor_depth = int(np.log2(np.prod(params[0].shape)))
+        return self._matrix(*params).reshape([2] * tensor_depth)
 
 
 # =============================================================================
