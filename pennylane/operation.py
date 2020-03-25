@@ -461,14 +461,14 @@ class Operator(abc.ABC):
         # TODO profiling
         def evaluate(p):
             """Evaluate a single parameter."""
+            if isinstance(p, Variable):
+                p = self.check_domain(p.val)
             if isinstance(p, np.ndarray):
                 # object arrays may have Variables inside them
                 if p.dtype == object:
                     temp = np.array([x.val if isinstance(x, Variable) else x for x in p.flat])
                     return temp.reshape(p.shape)
                 return p
-            if isinstance(p, Variable):
-                p = self.check_domain(p.val)
             return p
 
         return [evaluate(p) for p in self.params]
