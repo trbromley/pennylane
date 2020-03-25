@@ -96,24 +96,24 @@ class LightningQubit(QubitDevice):
         for i, operation in enumerate(operations):
             # number of wires on device
             wires = operation.wires
-            par = operation.parameters
+            par = operation.params
 
-            if i > 0 and isinstance(operation, (QubitStateVector, BasisState)):
+            if i > 0 and operation.name in ("QubitStateVector", "BasisState"):
                 raise DeviceError(
                     "Operation {} cannot be used after other Operations have already been applied "
                     "on a {} device.".format(operation.name, self.short_name)
                 )
 
-            if isinstance(operation, QubitStateVector):
+            if operation.name is "QubitStateVector":
                 input_state = np.asarray(par[0], dtype=np.complex128)
                 self.apply_state_vector(input_state, wires)
 
-            elif isinstance(operation, BasisState):
+            elif operation.name is "BasisState":
                 basis_state = par[0]
                 self.apply_basis_state(basis_state, wires)
 
             else:
-                self._state = self.mat_vec_product(operation.matrix, self._state, wires, self.num_wires)
+                self._state = self.mat_vec_product(operation.matrix, self._state, wires)
 
         # store the pre-rotated state
         self._pre_rotated_state = self._state
@@ -121,8 +121,7 @@ class LightningQubit(QubitDevice):
         # apply the circuit rotations
         for operation in rotations:
             wires = operation.wires
-            par = operation.parameters
-            self._state = self.mat_vec_product(operation.matrix, self._state, wires, self.num_wires)
+            self._state = self.mat_vec_product(operation.matrix, self._state, wires)
 
     @property
     def state(self):
