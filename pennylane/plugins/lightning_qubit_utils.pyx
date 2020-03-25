@@ -16,7 +16,7 @@ def mvp(mat, vec, wires, num_wires):
         array: output vector after applying ``mat`` to input ``vec`` on specified subsystems
     """
     # TODO: use multi-index vectors/matrices to represent states/gates internally
-    mat = np.reshape(mat, [2] * len(wires) * 2)
+    # mat = np.reshape(mat, [2] * len(wires) * 2)
     vec = np.reshape(vec, [2] * num_wires)
     axes = (np.arange(len(wires), 2 * len(wires)), wires)
     tdot = np.tensordot(mat, vec, axes=axes)
