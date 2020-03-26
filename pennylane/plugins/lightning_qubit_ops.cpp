@@ -3,23 +3,26 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xadapt.hpp"
 
+//void print_vector(std::vector<unsigned long int> vec)
+//{
+//    std::cout << "[";
+//    for (int i; i < vec.size(); i++)
+//    {
+//    std::cout << vec[i] << ", ";
+//    }
+//    std::cout << "]" << std::endl;
+//}
+
 xt::xarray<double> mvp(xt::xarray<double> op, xt::xarray<double> state, std::vector<unsigned long int> op_wires)
 {
     auto shape = op.shape();
     unsigned long int length = shape.size() / 2;
-//    unsigned long int axis[length];
+    std::vector<unsigned long int> axis(length);
 
-//    for (int i=0; i < length; i++)
-//    {
-//        axis[i] = i + length;
-//    }
-
-    std::vector<unsigned long int> axis(length, 2 * length);
-
-    std::cout << xt::adapt(shape) << std::endl;
+    for (int i=0; i<length; i++){ axis[i] = i + length; }
 
     auto result = xt::linalg::tensordot(op, state, axis, op_wires);
-    return 0;
+    return result;
 }
 
 int main()
