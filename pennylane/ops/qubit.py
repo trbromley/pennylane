@@ -23,6 +23,21 @@ from pennylane.operation import Any, Observable, Operation
 from pennylane.templates.state_preparations import BasisStatePreparation, MottonenStatePreparation
 from pennylane.utils import OperationRecorder, pauli_eigs
 
+from numba import jit
+
+ID = np.eye(2)
+
+
+@jit(nopython=True)
+def r_matrix(theta, axis):
+    """Number rotation matrix"""
+    if axis == 1:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[0, 1], [1, 0]])
+    elif axis == 2:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[0, -1j], [1j, 0]])
+    else:
+        return np.cos(theta / 2) * ID + 1j * np.sin(-theta / 2) * np.array([[1, 0], [0, -1]])
+
 
 class Hadamard(Observable, Operation):
     r"""Hadamard(wires)
@@ -44,8 +59,11 @@ class Hadamard(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+
+    _matrix_tensor = _matrix
 
     def diagonalizing_gates(self):
         r"""Rotates the specified wires such that they
@@ -84,8 +102,11 @@ class PauliX(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[0, 1], [1, 0]])
+
+    _matrix_tensor = _matrix
 
     def diagonalizing_gates(self):
         r"""Rotates the specified wires such that they
@@ -122,8 +143,11 @@ class PauliY(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[0, -1j], [1j, 0]])
+
+    _matrix_tensor = _matrix
 
     def diagonalizing_gates(self):
         r"""Rotates the specified wires such that they
@@ -162,8 +186,11 @@ class PauliZ(Observable, Operation):
     eigvals = pauli_eigs(1)
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0], [0, -1]])
+
+    _matrix_tensor = _matrix
 
     def diagonalizing_gates(self):
         return []
@@ -194,6 +221,7 @@ class S(Operation):
     def _matrix(*params):
         return np.array([[1, 0], [0, 1j]])
 
+    _matrix_tensor = _matrix
 
 class T(Operation):
     r"""T(wires)
@@ -219,6 +247,8 @@ class T(Operation):
     @staticmethod
     def _matrix(*params):
         return np.array([[1, 0], [0, np.exp(1j * np.pi / 4)]])
+
+    _matrix_tensor = _matrix
 
 
 class CNOT(Operation):
@@ -247,8 +277,25 @@ class CNOT(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 0, 1], [0, 0, 1, 0]])
+
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix_tensor(*params):
+        return np.array([[[[1, 0],
+         [0, 0]],
+
+        [[0, 1],
+         [0, 0]]],
+
+
+       [[[0, 0],
+         [0, 1]],
+
+        [[0, 0],
+         [1, 0]]]])
 
 
 class CZ(Operation):
@@ -277,8 +324,24 @@ class CZ(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, -1]])
+
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix_tensor(*params):
+        np.array([[[[1, 0],
+                 [0, 0]],
+
+                [[0, 1],
+                 [0, 0]]],
+
+               [[[0, 0],
+                 [1, 0]],
+
+                [[0, 0],
+                 [0, -1]]]])
 
 
 class SWAP(Operation):
@@ -305,8 +368,25 @@ class SWAP(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array([[1, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0], [0, 0, 0, 1]])
+
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix_tensor(*params):
+        np.array([[[[1, 0],
+         [0, 0]],
+
+        [[0, 0],
+         [1, 0]]],
+
+
+       [[[0, 1],
+         [0, 0]],
+
+        [[0, 0],
+         [0, 1]]]])
 
 
 class CSWAP(Operation):
@@ -339,6 +419,7 @@ class CSWAP(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         return np.array(
             [
@@ -352,6 +433,68 @@ class CSWAP(Operation):
                 [0, 0, 0, 0, 0, 0, 0, 1],
             ]
         )
+
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix_tensor(*params):
+        np.array([[[[[[1, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 0]]],
+
+
+         [[[0, 1],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 0]]]],
+
+
+
+        [[[[0, 0],
+           [1, 0]],
+
+          [[0, 0],
+           [0, 0]]],
+
+
+         [[[0, 0],
+           [0, 1]],
+
+          [[0, 0],
+           [0, 0]]]]],
+
+
+
+
+       [[[[[0, 0],
+           [0, 0]],
+
+          [[1, 0],
+           [0, 0]]],
+
+
+         [[[0, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [1, 0]]]],
+
+
+
+        [[[[0, 0],
+           [0, 0]],
+
+          [[0, 1],
+           [0, 0]]],
+
+
+         [[[0, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 1]]]]]])
 
 
 class Toffoli(Operation):
@@ -385,10 +528,82 @@ class Toffoli(Operation):
     par_domain = None
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
-        mat = np.diag([1 for i in range(8)])
-        mat[6:8, 6:8] = np.array([[0, 1], [1, 0]])
-        return mat
+        return np.array(
+            [
+                [1, 0, 0, 0, 0, 0, 0, 0],
+                [0, 1, 0, 0, 0, 0, 0, 0],
+                [0, 0, 1, 0, 0, 0, 0, 0],
+                [0, 0, 0, 1, 0, 0, 0, 0],
+                [0, 0, 0, 0, 1, 0, 0, 0],
+                [0, 0, 0, 0, 0, 1, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 1],
+                [0, 0, 0, 0, 0, 0, 1, 0],
+            ]
+        )
+
+    @staticmethod
+    @jit(nopython=True)
+    def _matrix_tensor(*params):
+        np.array([[[[[[1, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 0]]],
+
+
+         [[[0, 1],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 0]]]],
+
+
+
+        [[[[0, 0],
+           [1, 0]],
+
+          [[0, 0],
+           [0, 0]]],
+
+
+         [[[0, 0],
+           [0, 1]],
+
+          [[0, 0],
+           [0, 0]]]]],
+
+
+
+
+       [[[[[0, 0],
+           [0, 0]],
+
+          [[1, 0],
+           [0, 0]]],
+
+
+         [[[0, 0],
+           [0, 0]],
+
+          [[0, 1],
+           [0, 0]]]],
+
+
+
+        [[[[0, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [0, 1]]],
+
+
+         [[[0, 0],
+           [0, 0]],
+
+          [[0, 0],
+           [1, 0]]]]]])
 
 
 class RX(Operation):
@@ -418,9 +633,11 @@ class RX(Operation):
     generator = [PauliX, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliX._matrix()
+        return r_matrix(params[0], 1)
+
+    _matrix_tensor = _matrix
 
 
 class RY(Operation):
@@ -450,9 +667,11 @@ class RY(Operation):
     generator = [PauliY, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliY._matrix()
+        return r_matrix(params[0], 2)
+
+    _matrix_tensor = _matrix
 
 
 class RZ(Operation):
@@ -482,9 +701,11 @@ class RZ(Operation):
     generator = [PauliZ, -1 / 2]
 
     @staticmethod
+    @jit(nopython=False)
     def _matrix(*params):
-        theta = params[0]
-        return np.cos(theta / 2) * np.eye(2) + 1j * np.sin(-theta / 2) * PauliZ._matrix()
+        return r_matrix(params[0], 3)
+
+    _matrix_tensor = _matrix
 
 
 class PhaseShift(Operation):
@@ -517,6 +738,8 @@ class PhaseShift(Operation):
     def _matrix(*params):
         phi = params[0]
         return np.array([[1, 0], [0, np.exp(1j * phi)]])
+
+    _matrix_tensor = _matrix
 
 
 class Rot(Operation):
@@ -555,9 +778,12 @@ class Rot(Operation):
     grad_method = "A"
 
     @staticmethod
+    @jit(nopython=True)
     def _matrix(*params):
         a, b, c = params
-        return RZ._matrix(c) @ (RY._matrix(b) @ RZ._matrix(a))
+        return r_matrix(c, 3) @ r_matrix(b, 2) @ r_matrix(a, 3)
+
+    _matrix_tensor = _matrix
 
     @staticmethod
     def decomposition(phi, theta, omega, wires):
@@ -615,7 +841,7 @@ class CRX(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RX._matrix(*params))
+        return block_diag(ID, RX._matrix(*params))
 
     @staticmethod
     def decomposition(theta, wires):
@@ -628,6 +854,10 @@ class CRX(Operation):
             RZ(-np.pi / 2, wires=wires[1]),
         ]
         return decomp_ops
+
+    @staticmethod
+    def _matrix_tensor(*params):
+        np.reshape(block_diag(ID, RX._matrix(*params)), [2] * 4)
 
 
 class CRY(Operation):
@@ -678,7 +908,11 @@ class CRY(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RY._matrix(*params))
+        return block_diag(ID, RY._matrix(*params))
+
+    @staticmethod
+    def _matrix_tensor(*params):
+        np.reshape(block_diag(ID, RY._matrix(*params)), [2] * 4)
 
     @staticmethod
     def decomposition(theta, wires):
@@ -739,7 +973,11 @@ class CRZ(Operation):
 
     @staticmethod
     def _matrix(*params):
-        return block_diag(np.eye(2), RZ._matrix(*params))
+        return block_diag(ID, RZ._matrix(*params))
+
+    @staticmethod
+    def _matrix_tensor(*params):
+        np.reshape(block_diag(ID, RZ._matrix(*params)), [2] * 4)
 
     @staticmethod
     def decomposition(lam, wires):
@@ -789,6 +1027,11 @@ class CRot(Operation):
         a, b, c = params
         return CRZ._matrix(c) @ (CRY._matrix(b) @ CRZ._matrix(a))
 
+    @staticmethod
+    def _matrix_tensor(*params):
+        a, b, c = params
+        np.reshape(CRZ._matrix(c) @ (CRY._matrix(b) @ CRZ._matrix(a)), [2] * 4)
+
 
 class U1(Operation):
     r"""U1(phi)
@@ -823,6 +1066,8 @@ class U1(Operation):
     @staticmethod
     def _matrix(*params):
         return PhaseShift._matrix(*params)
+
+    _matrix_tensor = _matrix
 
     @staticmethod
     def decomposition(phi, wires):
@@ -872,6 +1117,8 @@ class U2(Operation):
     def _matrix(*params):
         phi, lam = params
         return PhaseShift._matrix(phi + lam) @ Rot._matrix(lam, np.pi / 2, -lam)
+
+    _matrix_tensor = _matrix
 
     @staticmethod
     def decomposition(phi, lam, wires):
@@ -928,6 +1175,8 @@ class U3(Operation):
         theta, phi, lam = params
         return PhaseShift._matrix(phi + lam) @ Rot._matrix(lam, theta, -lam)
 
+    _matrix_tensor = _matrix
+
     @staticmethod
     def decomposition(theta, phi, lam, wires):
         decomp_ops = [
@@ -973,6 +1222,10 @@ class QubitUnitary(Operation):
             raise ValueError("Operator must be unitary.")
 
         return U
+
+    def _matrix_tensor(self, *params):
+        tensor_depth = int(np.log2(np.prod(params[0].shape)))
+        return self._matrix(*params).reshape([2] * tensor_depth)
 
 
 # =============================================================================
@@ -1095,6 +1348,9 @@ class Hermitian(Observable):
             raise ValueError("Observable must be Hermitian.")
 
         return A
+
+    def _matrix_tensor(self, *params):
+        self._matrix(params).reshape([2] * self.num_wires)
 
     @property
     def eigendecomposition(self):

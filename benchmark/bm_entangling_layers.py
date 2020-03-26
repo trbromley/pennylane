@@ -54,7 +54,7 @@ class Benchmark(bu.BaseBenchmark):
         features = np.arange(self.n_wires)
         init_weights = strong_ent_layers_uniform(n_layers=n, n_wires=self.n_wires)
 
-        qnode = bu.create_qnode(circuit, self.device, mutable=False)
+        qnode = bu.create_qnode(circuit, self.device, mutable=True)
         qnode(init_weights, features=features)
-        qnode.jacobian(init_weights, {"features": features})
+        qnode.jacobian((init_weights,), {"features": features})
         return True
