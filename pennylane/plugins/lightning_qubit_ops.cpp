@@ -1,6 +1,7 @@
 #include <iostream>
 //#include <Eigen/Dense>
 #include <xtensor/xarray.hpp>
+#include "xtensor-blas/xlinalg.hpp"
 //using Eigen::MatrixXd;
 int main()
 {
