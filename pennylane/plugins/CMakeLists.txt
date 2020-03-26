@@ -23,8 +23,13 @@ endif()
 
 find_package(OpenMP REQUIRED) # Find the package
 
+# target_include_directories(lqo PRIVATE ${${CONDA_PREFIX}/include})
+# include_directories({/home/tom/miniconda3/envs/pennylane/include})
+# set(XTENSOR xtensor-blas)
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
 conan_basic_setup()
 
 add_executable(lqo lightning_qubit_ops.cpp)
+# target_link_libraries(lqo ${XTENSOR})
+target_include_directories(lqo PRIVATE ${CONDA_PREFIX}/include)
 target_link_libraries(lqo ${CONAN_LIBS})
