@@ -201,19 +201,7 @@ class LightningQubit(QubitDevice):
         Returns:
             array: output vector after applying ``mat`` to input ``vec`` on specified subsystems
         """
-        # axes = (np.arange(len(wires), 2 * len(wires)), wires)
-        # tdot_old = np.tensordot(mat_t, vec, axes=axes)
-        tdot = mvp(mat_t, vec, wires)
-        # print(tdot, tdot_old)
-        # tensordot causes the axes given in `wires` to end up in the first positions
-        # of the resulting tensor. This corresponds to a (partial) transpose of
-        # the correct output state
-        # We'll need to invert this permutation to put the indices in the correct place
-        unused_idxs = [idx for idx in range(num_wires) if idx not in wires]
-        perm = wires + unused_idxs
-        inv_perm = np.argsort(perm)  # argsort gives inverse permutation
-        state_multi_index = np.transpose(tdot, inv_perm)
-        return state_multi_index
+        return mvp(mat_t, vec, wires)
 
     def reset(self):
         """Reset the device"""
