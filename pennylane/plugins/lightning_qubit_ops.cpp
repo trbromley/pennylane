@@ -9,7 +9,8 @@
 #include "xtensor/xadapt.hpp"
 #include "pybind11/stl.h"
 
-xt::pyarray<double> mvp(xt::pyarray<double>& op, xt::pyarray<double>& state, std::vector<unsigned
+xt::pyarray<std::complex<double>> mvp(xt::pyarray<std::complex<double>>& op, xt::pyarray<std::complex<double>>& state,
+std::vector<unsigned
 long int>& op_wires)
 {
     auto shape = op.shape();
