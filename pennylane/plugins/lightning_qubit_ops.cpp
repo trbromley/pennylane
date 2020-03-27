@@ -1,19 +1,16 @@
+#include <numeric>                        // Standard library import for std::accumulate
+#include "pybind11/pybind11.h"            // Pybind11 import to define Python bindings
+#include "xtensor/xmath.hpp"              // xtensor import for the C++ universal functions
+#define FORCE_IMPORT_ARRAY
+#include "xtensor-python/pyarray.hpp"     // Numpy bindings
 #include "xtensor-blas/xlinalg.hpp"
 #include "xtensor/xio.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xadapt.hpp"
+#include "pybind11/stl.h"
 
-//void print_vector(std::vector<unsigned long int> vec)
-//{
-//    std::cout << "[";
-//    for (int i; i < vec.size(); i++)
-//    {
-//    std::cout << vec[i] << ", ";
-//    }
-//    std::cout << "]" << std::endl;
-//}
-
-xt::xarray<double> mvp(xt::xarray<double> op, xt::xarray<double> state, std::vector<unsigned long int> op_wires)
+xt::pyarray<double> mvp(xt::pyarray<double> op, xt::pyarray<double> state, std::vector<unsigned
+long int> op_wires)
 {
     auto shape = op.shape();
     unsigned long int length = shape.size() / 2;
@@ -25,22 +22,17 @@ xt::xarray<double> mvp(xt::xarray<double> op, xt::xarray<double> state, std::vec
     return result;
 }
 
-int main()
+double sum_of_sines(xt::pyarray<double>& m)
 {
-    xt::xarray<double> op, state;
-    std::vector<unsigned long int> op_wires;
+    auto sines = xt::sin(m);  // sines does not actually hold values.
+    return std::accumulate(sines.begin(), sines.end(), 0.0);
+}
 
-    op = {{{{1., 0.},
-         {0., 0.}},
-        {{0., 1.},
-         {0., 0.}}},
-       {{{0., 0.},
-         {1., 0.}},
-        {{0., 0.},
-         {0., 1.}}}};
-    state = {{1, -1}, {1, -1}};
-    op_wires = {0, 1};
+PYBIND11_MODULE(lightning_qubit_ops, m)
+{
+    xt::import_numpy();
+    m.doc() = "Lightning qubit operations using XTensor";
 
-    std::cout << mvp(op, state, op_wires) << std::endl;
-    return 0;
+    m.def("sum_of_sines", sum_of_sines, "Sum the sines of the input values");
+    m.def("mvp", mvp, "Matrix vector product");
 }
