@@ -8,19 +8,18 @@
 #include "xtensor/xarray.hpp"
 #include "xtensor/xadapt.hpp"
 #include "pybind11/stl.h"
+#define XTENSOR_USE_XSIMD
 
 xt::pyarray<std::complex<double>> mvp(xt::pyarray<std::complex<double>>& op, xt::pyarray<std::complex<double>>& state,
-std::vector<unsigned
-long int>& op_wires)
+std::vector<unsigned long int>& op_wires)
 {
     auto shape = op.shape();
-    unsigned long int length = shape.size() / 2;
+    unsigned long int length = shape.size() * 0.5;
     std::vector<unsigned long int> axis(length);
 
     for (int i=0; i<length; i++){ axis[i] = i + length; }
 
-    auto result = xt::linalg::tensordot(op, state, axis, op_wires);
-    return result;
+    return xt::linalg::tensordot(op, state, axis, op_wires);
 }
 
 PYBIND11_MODULE(lightning_qubit_ops, m)
