@@ -24,7 +24,8 @@ import itertools
 import numpy as np
 
 from pennylane import QubitDevice, DeviceError, QubitStateVector, BasisState
-from .lightning_qubit_utils import mvp
+# from .lightning_qubit_utils import mvp
+from .lightning_qubit_ops import mvp
 
 # tolerance for numerical errors
 tolerance = 1e-10
@@ -200,12 +201,10 @@ class LightningQubit(QubitDevice):
         Returns:
             array: output vector after applying ``mat`` to input ``vec`` on specified subsystems
         """
-        # return mvp(mat, vec, wires, num_wires)
-        # TODO: use multi-index vectors/matrices to represent states/gates internally
-        # mat_t = np.reshape(mat_t, [2] * len(wires) * 2)
-        axes = (np.arange(len(wires), 2 * len(wires)), wires)
-        tdot = np.tensordot(mat_t, vec, axes=axes)
-
+        # axes = (np.arange(len(wires), 2 * len(wires)), wires)
+        # tdot_old = np.tensordot(mat_t, vec, axes=axes)
+        tdot = mvp(mat_t, vec, wires)
+        # print(tdot, tdot_old)
         # tensordot causes the axes given in `wires` to end up in the first positions
         # of the resulting tensor. This corresponds to a (partial) transpose of
         # the correct output state
