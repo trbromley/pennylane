@@ -116,7 +116,7 @@ class LightningQubit(QubitDevice):
                 self.apply_basis_state(basis_state, wires)
 
             else:
-                self._state = self.mat_vec_product(operation.matrix_tensor, self._state, wires, self.num_wires)
+                self._state = mvp(operation.matrix_tensor, self._state, wires)
 
         # store the pre-rotated state
         self._pre_rotated_state = self._state
@@ -124,8 +124,7 @@ class LightningQubit(QubitDevice):
         # apply the circuit rotations
         for operation in rotations:
             wires = operation.wires
-            self._state = self.mat_vec_product(operation.matrix_tensor, self._state, wires,
-                                               self.num_wires)
+            self._state = mvp(operation.matrix_tensor, self._state, wires)
 
     @property
     def state(self):
