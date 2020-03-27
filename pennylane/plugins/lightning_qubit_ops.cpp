@@ -2,7 +2,6 @@
 #include "xtensor/xio.hpp"
 #include "xtensor/xarray.hpp"
 #include "xtensor/xadapt.hpp"
-#include "xtensor-python/pyarray.hpp"
 
 //void print_vector(std::vector<unsigned long int> vec)
 //{
