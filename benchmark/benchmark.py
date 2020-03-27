@@ -52,7 +52,7 @@ def col(text, color):
     return Colors[color] + text + RESET
 
 
-def timing(func, *, number=10, repeat=5):
+def timing(func, *, number=100, repeat=5):
     """Time the given function.
 
     Args:
@@ -64,7 +64,7 @@ def timing(func, *, number=10, repeat=5):
 
     print("{} loops, {} runs".format(number, repeat))
     res = timeit.repeat(func, number=number, repeat=repeat, globals=globals())
-    print("Timing per loop:", col(str(np.array(res) / number), "yellow"))
+    print("Timing per loop:", col(str(np.mean(np.array(res) / number)), "yellow"))
 
 
 def plot(title, kernels, labels, n_vals):
