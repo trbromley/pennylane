@@ -323,11 +323,15 @@ class JacobianQNode(BaseQNode):
         order = options.get("order", 1)
 
         shift_args = args.copy()
+        shift_args_down = args.copy()
         if order == 1:
             # shift the parameter by h
             shift_args[idx] += h
+            shift_args_down[idx] -= h
+
             y = np.asarray(self.evaluate(shift_args, kwargs))
-            return (y - y0) / h
+            y_down = np.asarray(self.evaluate(shift_args_down, kwargs))
+            return (y - y_down) / (2 * h)
 
         if order == 2:
             # symmetric difference
