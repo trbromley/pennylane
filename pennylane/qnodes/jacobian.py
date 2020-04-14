@@ -47,6 +47,9 @@ class JacobianQNode(BaseQNode):
         self._order = kwargs.get("order", 1)
         """float: step size for the finite difference method"""
 
+        self._order = kwargs.get("order", 1)
+        """float: order for the finite difference method"""
+
     metric_tensor = None
 
     @property
@@ -62,6 +65,15 @@ class JacobianQNode(BaseQNode):
     @h.setter
     def h(self, value):
         self._h = value
+
+    @property
+    def order(self):
+        """float: order for the finite difference method"""
+        return self._order
+
+    @order.setter
+    def order(self, value):
+        self._order = value
 
     def __repr__(self):
         """String representation."""
@@ -322,7 +334,7 @@ class JacobianQNode(BaseQNode):
             array[float]: partial derivative of the node
         """
         h = options.get("h", self.h)
-        order = options.get("order", 1)
+        order = options.get("order", self.order)
 
         shift_args = args.copy()
         if order == 1:
